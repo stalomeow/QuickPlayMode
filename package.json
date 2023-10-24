@@ -1,0 +1,11 @@
+{
+  "name": "com.stalomeow.easy-type-reload",
+  "version": "1.0.0",
+  "author": "Stalo",
+  "displayName": "Easy Type Reload",
+  "description": "Easy Type Reload",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.nuget.mono-cecil": "1.10.1"
+  }
+}

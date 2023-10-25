@@ -3,7 +3,6 @@ using Mono.Cecil.Cil;
 using System;
 using System.IO;
 using System.Linq;
-using EasyTypeReload.Editor;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
 
 namespace EasyTypeReload.CodeGen
@@ -20,8 +19,7 @@ namespace EasyTypeReload.CodeGen
                 return false;
             }
 
-            // return TypeReloadSettings.instance.AssemblyWhiteList.Contains(compiledAssembly.Name);
-            return compiledAssembly.Name == "Assembly-CSharp";
+            return compiledAssembly.References.Any(f => Path.GetFileName(f) == "EasyTypeReload.dll");
         }
 
         public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)

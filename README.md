@@ -116,45 +116,45 @@ using System.Threading;
 [CompilerGenerated]
 internal static class <AssemblyTypeReloader>
 {
-	private static Action s_UnloadActions;
+    private static Action s_UnloadActions;
 
-	private static Action s_LoadActions;
+    private static Action s_LoadActions;
 
-	public static void RegisterUnload(Action value)
-	{
-		Action action = s_UnloadActions;
-		Action action2;
-		do
-		{
-			action2 = action;
-			Action value2 = (Action)Delegate.Combine(action2, value);
-			action = Interlocked.CompareExchange(ref s_UnloadActions, value2, action2);
-		}
-		while ((object)action != action2);
-	}
+    public static void RegisterUnload(Action value)
+    {
+        Action action = s_UnloadActions;
+        Action action2;
+        do
+        {
+            action2 = action;
+            Action value2 = (Action)Delegate.Combine(action2, value);
+            action = Interlocked.CompareExchange(ref s_UnloadActions, value2, action2);
+        }
+        while ((object)action != action2);
+    }
 
-	public static void Unload()
-	{
-		s_UnloadActions?.Invoke();
-	}
+    public static void Unload()
+    {
+        s_UnloadActions?.Invoke();
+    }
 
-	public static void RegisterLoad(Action value)
-	{
-		Action action = s_LoadActions;
-		Action action2;
-		do
-		{
-			action2 = action;
-			Action value2 = (Action)Delegate.Combine(action2, value);
-			action = Interlocked.CompareExchange(ref s_LoadActions, value2, action2);
-		}
-		while ((object)action != action2);
-	}
+    public static void RegisterLoad(Action value)
+    {
+        Action action = s_LoadActions;
+        Action action2;
+        do
+        {
+            action2 = action;
+            Action value2 = (Action)Delegate.Combine(action2, value);
+            action = Interlocked.CompareExchange(ref s_LoadActions, value2, action2);
+        }
+        while ((object)action != action2);
+    }
 
-	public static void Load()
-	{
-		s_LoadActions?.Invoke();
-	}
+    public static void Load()
+    {
+        s_LoadActions?.Invoke();
+    }
 }
 ```
 
@@ -168,7 +168,7 @@ internal static class <AssemblyTypeReloader>
 [CompilerGenerated]
 private static void <ExampleGeneric`1>__ClassConstructor__Copy()
 {
-	Property = new List<T>(114);
+    Property = new List<T>(114);
 }
 ```
 
@@ -178,8 +178,8 @@ private static void <ExampleGeneric`1>__ClassConstructor__Copy()
 [CompilerGenerated]
 private static void <ExampleGeneric`1>__UnloadType__Impl()
 {
-	UnloadFirst();
-	UnloadSecond();
+    UnloadFirst();
+    UnloadSecond();
 }
 ```
 
@@ -189,10 +189,10 @@ private static void <ExampleGeneric`1>__UnloadType__Impl()
 [CompilerGenerated]
 private static void <ExampleGeneric`1>__LoadType__Impl()
 {
-	Value = default(T);
-	ExampleGeneric<T>.Event = null;
-	Property = null;
-	<ExampleGeneric`1>__ClassConstructor__Copy();
+    Value = default(T);
+    ExampleGeneric<T>.Event = null;
+    Property = null;
+    <ExampleGeneric`1>__ClassConstructor__Copy();
 }
 ```
 
@@ -201,11 +201,11 @@ private static void <ExampleGeneric`1>__LoadType__Impl()
 ``` csharp
 static ExampleGeneric()
 {
-	Property = new List<T>(114);
+    Property = new List<T>(114);
 
     // 下面是被插入的代码
-	<AssemblyTypeReloader>.RegisterUnload(<ExampleGeneric`1>__UnloadType__Impl);
-	<AssemblyTypeReloader>.RegisterLoad(<ExampleGeneric`1>__LoadType__Impl);
+    <AssemblyTypeReloader>.RegisterUnload(<ExampleGeneric`1>__UnloadType__Impl);
+    <AssemblyTypeReloader>.RegisterLoad(<ExampleGeneric`1>__LoadType__Impl);
 }
 ```
 

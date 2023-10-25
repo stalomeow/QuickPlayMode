@@ -209,7 +209,7 @@ static ExampleGeneric()
 }
 ```
 
-### 3. 监听 EnterPlayMode 事件
+### 3. 在 Unity Editor 中监听 EnterPlayMode 事件
 
 进入 Play Mode 时，重置类型。
 

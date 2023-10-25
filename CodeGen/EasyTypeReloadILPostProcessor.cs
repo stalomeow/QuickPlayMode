@@ -58,7 +58,7 @@ namespace EasyTypeReload.CodeGen
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Internal compiler error for {nameof(EasyTypeReloadILPostProcessor)} on {compiledAssembly.Name}. Exception: {ex.StackTrace}");
+                throw new InvalidOperationException($"Internal compiler error for {nameof(EasyTypeReloadILPostProcessor)} on {compiledAssembly.Name}. Exception: {ex}");
             }
             finally
             {

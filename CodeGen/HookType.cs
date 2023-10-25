@@ -47,6 +47,11 @@ namespace EasyTypeReload.CodeGen
             staticFields = new List<FieldDefinition>();
             unloadCallbacks = new List<MethodDefinition>();
 
+            if (type.Namespace == string.Empty && type.Name == AssemblyTypeReloaderConsts.TypeName)
+            {
+                return false;
+            }
+
             if (type.CustomAttributes.Get<NeverReloadAttribute>() != null)
             {
                 return false;

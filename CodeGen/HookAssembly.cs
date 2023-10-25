@@ -1,4 +1,3 @@
-using System;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using static EasyTypeReload.AssemblyTypeReloaderConsts;
@@ -35,9 +34,6 @@ namespace EasyTypeReload.CodeGen
 
             TypeDefinition type = new("", TypeName, typeAttributes, mainModule.TypeSystem.Object);
             mainModule.Types.Add(type);
-
-            MethodReference neverReloadAttrCtor = GetNeverReloadAttributeConstructor(mainModule);
-            type.CustomAttributes.Add(new CustomAttribute(neverReloadAttrCtor));
 
             return type;
         }
@@ -143,11 +139,6 @@ namespace EasyTypeReload.CodeGen
             il.Emit(OpCodes.Ret);
 
             return method;
-        }
-
-        public static MethodReference GetNeverReloadAttributeConstructor(ModuleDefinition mainModule)
-        {
-            return mainModule.ImportReference(typeof(NeverReloadAttribute).GetConstructor(Type.EmptyTypes));
         }
 
         private static TypeReference GetSystemActionType(ModuleDefinition mainModule)

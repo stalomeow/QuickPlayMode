@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "author": "Stalo",
   "displayName": "Easy Type Reload",
-  "description": "Easy Type Reload",
+  "description": "A package helps disabling Domain Reloading in Unity easier.",
   "unity": "2021.3",
   "dependencies": {
     "com.unity.nuget.mono-cecil": "1.10.1"

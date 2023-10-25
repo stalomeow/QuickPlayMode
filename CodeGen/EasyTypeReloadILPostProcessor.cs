@@ -19,6 +19,11 @@ namespace EasyTypeReload.CodeGen
                 return false;
             }
 
+            if (compiledAssembly.Name == "EasyTypeReload.Editor")
+            {
+                return false;
+            }
+
             return compiledAssembly.References.Any(f => Path.GetFileName(f) == "EasyTypeReload.dll");
         }
 
@@ -53,7 +58,7 @@ namespace EasyTypeReload.CodeGen
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Internal compiler error for ${nameof(EasyTypeReloadILPostProcessor)} on {compiledAssembly.Name}. Exception: {ex}");
+                throw new InvalidOperationException($"Internal compiler error for {nameof(EasyTypeReloadILPostProcessor)} on {compiledAssembly.Name}. Exception: {ex.StackTrace}");
             }
             finally
             {
@@ -71,7 +76,7 @@ namespace EasyTypeReload.CodeGen
             var readerParameters = new ReaderParameters
             {
                 InMemory = true,
-                ReadingMode = ReadingMode.Immediate
+                ReadingMode = ReadingMode.Deferred
             };
 
             if (symbolReader != null)

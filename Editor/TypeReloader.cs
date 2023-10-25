@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace EasyTypeReload.Editor
 {
-    [NeverReload]
     public static class TypeReloader
     {
         private static bool s_Initialized = false;

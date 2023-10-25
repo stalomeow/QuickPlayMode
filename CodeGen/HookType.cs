@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 using Mono.Cecil.Cil;
@@ -47,19 +46,12 @@ namespace EasyTypeReload.CodeGen
             staticFields = new List<FieldDefinition>();
             unloadCallbacks = new List<MethodDefinition>();
 
-            if (type.Namespace == string.Empty && type.Name == AssemblyTypeReloaderConsts.TypeName)
-            {
-                return false;
-            }
-
-            if (type.CustomAttributes.Get<NeverReloadAttribute>() != null)
+            if (type.CustomAttributes.Get<ReloadOnEnterPlayModeAttribute>() == null)
             {
                 return false;
             }
 
             FilterStaticFields(type, staticFields);
-            FilterStaticProperties(type, staticFields);
-            FilterStaticEvents(type, staticFields);
             FilterAndSortUnloadCallbacks(type, unloadCallbacks);
 
             return staticFields.Count > 0 || unloadCallbacks.Count > 0;
@@ -69,64 +61,12 @@ namespace EasyTypeReload.CodeGen
         {
             foreach (FieldDefinition field in type.Fields)
             {
-                if (!field.IsStatic)
-                {
-                    continue;
-                }
-
-                if (field.CustomAttributes.Get<NeverReloadAttribute>() != null)
+                if (!field.IsStatic || field.IsLiteral)
                 {
                     continue;
                 }
 
                 outStaticFields.Add(field);
-            }
-        }
-
-        private static void FilterStaticProperties(TypeDefinition type, List<FieldDefinition> staticFields)
-        {
-            foreach (PropertyDefinition prop in type.Properties)
-            {
-                if (prop.GetMethod is { IsStatic: false } || prop.SetMethod is { IsStatic: false })
-                {
-                    continue;
-                }
-
-                if (prop.CustomAttributes.Get<NeverReloadAttribute>() == null)
-                {
-                    continue;
-                }
-
-                // remove property backing field
-                string backingFieldName = $"<{prop.Name}>k__BackingField";
-                int fieldIndex = staticFields.FindIndex(field => field.Name == backingFieldName);
-                if (fieldIndex >= 0 && staticFields[fieldIndex].CustomAttributes.Get<CompilerGeneratedAttribute>() != null)
-                {
-                    staticFields.RemoveAt(fieldIndex);
-                }
-            }
-        }
-
-        private static void FilterStaticEvents(TypeDefinition type, List<FieldDefinition> staticFields)
-        {
-            foreach (EventDefinition @event in type.Events)
-            {
-                if (!@event.AddMethod.IsStatic || !@event.RemoveMethod.IsStatic)
-                {
-                    continue;
-                }
-
-                if (@event.CustomAttributes.Get<NeverReloadAttribute>() == null)
-                {
-                    continue;
-                }
-
-                // remove event backing field
-                int fieldIndex = staticFields.FindIndex(field => field.Name == @event.Name);
-                if (fieldIndex >= 0 && staticFields[fieldIndex].CustomAttributes.Get<CompilerGeneratedAttribute>() != null)
-                {
-                    staticFields.RemoveAt(fieldIndex);
-                }
             }
         }
 
@@ -141,7 +81,7 @@ namespace EasyTypeReload.CodeGen
                     continue;
                 }
 
-                CustomAttribute attr = method.CustomAttributes.Get<ExecuteOnTypeUnloadAttribute>();
+                CustomAttribute attr = method.CustomAttributes.Get<RunBeforeReloadAttribute>();
 
                 if (attr == null)
                 {
@@ -152,7 +92,7 @@ namespace EasyTypeReload.CodeGen
 
                 foreach (CustomAttributeNamedArgument prop in attr.Properties)
                 {
-                    if (prop.Name == nameof(ExecuteOnTypeUnloadAttribute.Order))
+                    if (prop.Name == nameof(RunBeforeReloadAttribute.OrderInType))
                     {
                         order = (int)prop.Argument.Value;
                         break;

@@ -1,5 +1,6 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Mono.Collections.Generic;
 using static EasyTypeReload.AssemblyTypeReloaderConsts;
 
 namespace EasyTypeReload.CodeGen
@@ -33,6 +34,7 @@ namespace EasyTypeReload.CodeGen
                                                   TypeAttributes.BeforeFieldInit;
 
             TypeDefinition type = new("", TypeName, typeAttributes, mainModule.TypeSystem.Object);
+            AddCompilerGeneratedAttribute(type.CustomAttributes, mainModule);
             mainModule.Types.Add(type);
 
             return type;
@@ -139,6 +141,14 @@ namespace EasyTypeReload.CodeGen
             il.Emit(OpCodes.Ret);
 
             return method;
+        }
+
+        private static void AddCompilerGeneratedAttribute(Collection<CustomAttribute> attributes, ModuleDefinition mainModule)
+        {
+            var type = new TypeReference("System.Runtime.CompilerServices", "CompilerGeneratedAttribute",
+                mainModule, mainModule.TypeSystem.CoreLibrary, false);
+            var ctor = new MethodReference(".ctor", mainModule.TypeSystem.Void, type) { HasThis = true };
+            attributes.Add(new CustomAttribute(ctor));
         }
 
         private static TypeReference GetSystemActionType(ModuleDefinition mainModule)

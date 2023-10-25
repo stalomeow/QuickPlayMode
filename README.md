@@ -1,6 +1,6 @@
 # EasyTypeReload
 
-提供一些 Attribute。在关闭 Unity 的 [Domain Reload](https://docs.unity3d.com/Manual/DomainReloading.html) 后，进入 Play Mode 时，会自动重置 **部分之前使用过的类型** 中的 Static Field/Property/Event，就好像这些类型被重新加载了一样。
+提供一些 Attribute。在关闭 Unity 的 [Domain Reloading](https://docs.unity3d.com/Manual/DomainReloading.html) 后，进入 Play Mode 时，会自动重置 **部分之前使用过的类型** 中的 Static Field/Property/Event，就好像这些类型被重新加载了一样。
 
 ## 要求
 

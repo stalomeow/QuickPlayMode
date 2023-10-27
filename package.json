@@ -1,6 +1,6 @@
 {
   "name": "com.stalomeow.easy-type-reload",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Stalo",
   "displayName": "Easy Type Reload",
   "description": "An easy-to-use package for Unity that automatically resets static members of types when you enter play mode without reloading domain. It has low runtime overhead and can be entirely stripped from build.",

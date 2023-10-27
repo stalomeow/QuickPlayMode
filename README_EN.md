@@ -2,105 +2,105 @@
 
 [![openupm](https://img.shields.io/npm/v/com.stalomeow.easy-type-reload?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.cn/packages/com.stalomeow.easy-type-reload/)
 
-在关闭 Unity 的 [Domain Reloading](https://docs.unity3d.com/Manual/DomainReloading.html) 后，进入 Play Mode 时，自动重置类型的静态成员。运行时开销低。正式打包时，这个包的代码会被完全剔除。
+An easy-to-use package for Unity that automatically resets static members of types when you enter play mode without [reloading domain](https://docs.unity3d.com/Manual/DomainReloading.html). It has low runtime overhead and can be entirely stripped from build.
 
-[English Version](/README_EN.md)
+[中文版](/README.md)
 
-## 要求
+## Requirements
 
 - Unity >= 2021.3.
 - Mono Cecil >= 1.10.1.
 
-## 示例
+## Examples
 
-导入包以后，在类型上加 Attribute 就好。不需要额外的配置。
+After importing the package, simply add attributes to your types. No additional configuration is needed.
 
-``` csharp
-// 使用命名空间
+```csharp
+// Use the namespace
 using EasyTypeReload;
 // using ...
 
-// 标记类型
+// Mark the type
 [ReloadOnEnterPlayMode]
-public static class ExampleGeneric<T> // 支持泛型
+public static class ExampleGeneric<T> // Support generics
 {
-    // 会被自动重置为 default(T)
+    // Automatically reset to default(T)
     public static T Value;
 
-    // 会被自动重置为 null
+    // Automatically reset to null
     public static event Action<T> Event;
 
-    // 会被自动重置为 new List<T>(114)
+    // Automatically reset to (new List<T>(114))
     public static List<T> Property { get; set; } = new List<T>(114);
 
-    // 在类型被重置前，会调用这个方法
-    // OrderInType 默认为 0，数字越小执行越早
-    // * 一个类型中的多个回调会被排序，但类型与类型间不会排序
+    // This method is called before the type is reloaded
+    // OrderInType defaults to 0, lower number executes earlier
+    // * Multiple callbacks within a type are sorted, but not between types
     [RunBeforeReload(OrderInType = 100)]
     static void UnloadSecond()
     {
         Debug.Log("514");
     }
 
-    // 在类型被重置前，也会调用这个方法
-    // UnloadFirst() 在 UnloadSecond() 前被调用
+    // This method is also called before the type is reloaded
+    // UnloadFirst() is called before UnloadSecond()
     [RunBeforeReload]
     static void UnloadFirst()
     {
         Debug.Log("114");
     }
 
-    // 标记类型
+    // Mark the type
     [ReloadOnEnterPlayMode]
-    public static class ExampleNestedNonGeneric // 支持嵌套类型
+    public static class ExampleNestedNonGeneric // Support nested types
     {
-        // 会被自动重置为 new()
+        // Automatically reset to (new()
         // {
         //     "Hello",
         //     "World"
-        // }
+        // })
         public static List<string> ListValue = new()
         {
             "Hello",
             "World"
         };
 
-        // .cctor 会被重新执行
+        // .cctor will be executed again
         static ExampleNestedNonGeneric()
         {
             Debug.Log("ExampleNestedNonGeneric..cctor()");
         }
     }
 
-    // 标记类型
+    // Mark the type
     [ReloadOnEnterPlayMode]
-    public static class ExampleNestedGeneric<U> // 支持泛型嵌套泛型
+    public static class ExampleNestedGeneric<U> // Support generic types nested in other generic types
     {
-        // 会被自动重置为 default(KeyValuePair<T, U>)
+        // Automatically reset to default(KeyValuePair<T, U>)
         public static KeyValuePair<T, U> KVPValue;
     }
 }
 
-// 没有标记 [ReloadOnEnterPlayMode]
+// Not marked with [ReloadOnEnterPlayMode]
 public static class ExampleIgnoredClass
 {
-    // 不会被自动重置
+    // Will not be automatically reset
     public static string Value;
 
-    // 不会重新执行
+    // Will not be executed again
     static ExampleIgnoredClass() { }
 
-    // 不会被调用
+    // Will not be called
     [RunBeforeReload]
     static void Unload() { }
 }
 ```
 
-## 单例模式
+## Singleton
 
-和以前的写法基本没有差别。
+It’s almost the same as writing without using this package.
 
-``` csharp
+```csharp
 using EasyTypeReload;
 // using ...
 
@@ -138,21 +138,21 @@ public class CountManager : BaseManager<CountManager>
 }
 ```
 
-## 编辑器扩展
+## Editor Extensions
 
-提供了 MenuItem。可以手动重置之前用过的类型，或者手动 Reload Domain。
+It provides a menu item. You can manually reload previously used types or manually reload the domain.
 
 ![menu-item](/Screenshots~/menu_item.png)
 
-## 原理？
+## How Does It Work?
 
-下面所有的工作都是自动完成的，且只在 Editor 里才执行。正式打包时，经过 [Managed code stripping](https://docs.unity3d.com/Manual/ManagedCodeStripping.html)，这个插件的痕迹会完全消失，连元数据都不会留下。
+All of the following work is done automatically and only within the Unity Editor. When building for production, there will be no traces of this package, not even in the metadata, because of the [Managed code stripping](https://docs.unity3d.com/Manual/ManagedCodeStripping.html).
 
 ### 1. Hook Assembly
 
-在程序集中插入下面的代码。运行时用来记录该程序集中被使用过的类型。
+Insert the following code into the assembly. At runtime, it will record the assembly's types that have been used.
 
-``` csharp
+```csharp
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -192,7 +192,7 @@ internal static class <AssemblyTypeReloader>
             Action value2 = (Action)Delegate.Combine(action2, value);
             action = Interlocked.CompareExchange(ref s_LoadActions, value2, action2);
         }
-        while ((object)action != action2);
+        while (action != action2);
     }
 
     public static void Load()
@@ -204,11 +204,11 @@ internal static class <AssemblyTypeReloader>
 
 ### 2. Hook Type
 
-以示例中的 `ExampleGeneric<T>` 为例。
+Using `ExampleGeneric<T>` from the previous Examples:
 
-#### 复制 Class Constructor（.cctor）
+#### Copy Class Constructor (.cctor)
 
-``` csharp
+```csharp
 [CompilerGenerated]
 private static void <ExampleGeneric`1>__ClassConstructor__Copy()
 {
@@ -216,9 +216,9 @@ private static void <ExampleGeneric`1>__ClassConstructor__Copy()
 }
 ```
 
-#### 生成代码：按顺序调用 RunBeforeReload 回调
+#### Generate code: Call RunBeforeReload callbacks in order
 
-``` csharp
+```csharp
 [CompilerGenerated]
 private static void <ExampleGeneric`1>__UnloadType__Impl()
 {
@@ -227,9 +227,9 @@ private static void <ExampleGeneric`1>__UnloadType__Impl()
 }
 ```
 
-#### 生成代码：重置所有字段，重新执行 .cctor
+#### Generate code: Reset all fields and re-execute .cctor
 
-``` csharp
+```csharp
 [CompilerGenerated]
 private static void <ExampleGeneric`1>__LoadType__Impl()
 {
@@ -240,24 +240,24 @@ private static void <ExampleGeneric`1>__LoadType__Impl()
 }
 ```
 
-#### 在原来的 .cctor 中插入代码
+#### Insert code in the original .cctor
 
-``` csharp
+```csharp
 static ExampleGeneric()
 {
     Property = new List<T>(114);
 
-    // 下面是被插入的代码
+    // Code is inserted below
     <AssemblyTypeReloader>.RegisterUnload(<ExampleGeneric`1>__UnloadType__Impl);
     <AssemblyTypeReloader>.RegisterLoad(<ExampleGeneric`1>__LoadType__Impl);
 }
 ```
 
-### 3. 在 Unity Editor 中监听 EnterPlayMode 事件
+### 3. Listen for EnterPlayMode Event in Unity Editor
 
-进入 Play Mode 时，重置类型。
+When entering Play Mode, reload dirty types.
 
-``` csharp
+```csharp
 public static class TypeReloader
 {
     private static bool s_Initialized = false;

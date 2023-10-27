@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "author": "Stalo",
   "displayName": "Easy Type Reload",
-  "description": "A package helps disabling Domain Reloading in Unity easier.",
+  "description": "An easy-to-use package for Unity that automatically resets static members of types when you enter play mode without reloading domain. It has low runtime overhead and can be entirely stripped from build.",
   "unity": "2021.3",
   "dependencies": {
     "com.unity.nuget.mono-cecil": "1.10.1"

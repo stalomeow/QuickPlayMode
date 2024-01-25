@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Warnings for readonly fields.
 - `ForceReloadAttribute` to suppress warnings.
 
+### Changed
+
+- Improve menu items.
+
 ## [1.0.1] - 2023-10-27
 
 ### Added

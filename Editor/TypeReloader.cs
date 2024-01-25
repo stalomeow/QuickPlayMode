@@ -42,18 +42,6 @@ namespace EasyTypeReload.Editor
             ReloadDirtyTypes();
         }
 
-        [MenuItem("Reload Tools/Reload Domain")]
-        private static void ForceReloadDomain()
-        {
-            EditorUtility.RequestScriptReload();
-        }
-
-        [MenuItem("Reload Tools/Reload Dirty Types")]
-        private static void ForceReloadDirtyTypes()
-        {
-            ReloadDirtyTypes();
-        }
-
         private static void InitializeIfNot()
         {
             if (s_Initialized)

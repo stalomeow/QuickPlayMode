@@ -96,48 +96,6 @@ public static class ExampleIgnoredClass
 }
 ```
 
-## Singleton
-
-It’s almost the same as writing without using this package.
-
-```csharp
-using EasyTypeReload;
-// using ...
-
-[ReloadOnEnterPlayMode]
-public abstract class BaseManager<T> where T : BaseManager<T>, new()
-{
-    public static T Instance { get; } = new T();
-
-    [RunBeforeReload]
-    private static void UnloadInstance() => Instance.Dispose();
-
-    protected BaseManager() { }
-
-    protected virtual void Dispose() { }
-}
-
-public class CountManager : BaseManager<CountManager>
-{
-    private int m_Count = 0;
-
-    public CountManager()
-    {
-        Debug.Log($"Create {nameof(CountManager)}");
-    }
-
-    public void IncreaseCount()
-    {
-        m_Count++;
-    }
-
-    public void PrintCount()
-    {
-        print(m_Count);
-    }
-}
-```
-
 ## Editor Extensions
 
 It provides a menu item. You can manually reload previously used types or manually reload the domain.

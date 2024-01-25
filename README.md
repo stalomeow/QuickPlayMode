@@ -96,48 +96,6 @@ public static class ExampleIgnoredClass
 }
 ```
 
-## 单例模式
-
-和以前的写法基本没有差别。
-
-``` csharp
-using EasyTypeReload;
-// using ...
-
-[ReloadOnEnterPlayMode]
-public abstract class BaseManager<T> where T : BaseManager<T>, new()
-{
-    public static T Instance { get; } = new T();
-
-    [RunBeforeReload]
-    private static void UnloadInstance() => Instance.Dispose();
-
-    protected BaseManager() { }
-
-    protected virtual void Dispose() { }
-}
-
-public class CountManager : BaseManager<CountManager>
-{
-    private int m_Count = 0;
-
-    public CountManager()
-    {
-        Debug.Log($"Create {nameof(CountManager)}");
-    }
-
-    public void IncreaseCount()
-    {
-        m_Count++;
-    }
-
-    public void PrintCount()
-    {
-        print(m_Count);
-    }
-}
-```
-
 ## 编辑器扩展
 
 提供了 MenuItem。可以手动重置之前用过的类型，或者手动 Reload Domain。

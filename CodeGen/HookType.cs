@@ -4,12 +4,13 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 using Mono.Cecil.Cil;
+using Unity.CompilationPipeline.Common.Diagnostics;
 
 namespace EasyTypeReload.CodeGen
 {
     internal static class HookType
     {
-        public static int Execute(AssemblyDefinition assembly, MethodReference registerUnloadMethod, MethodReference registerLoadMethod)
+        public static int Execute(AssemblyDefinition assembly, MethodReference registerUnloadMethod, MethodReference registerLoadMethod, List<DiagnosticMessage> outDiagnostics)
         {
             ModuleDefinition mainModule = assembly.MainModule;
             Stack<TypeDefinition> stack = new(mainModule.Types);
@@ -22,7 +23,7 @@ namespace EasyTypeReload.CodeGen
                     stack.Push(nestedType);
                 }
 
-                if (!NeedReload(type, out List<FieldDefinition> staticFields, out List<MethodDefinition> unloadCallbacks))
+                if (!NeedReload(type, out List<FieldDefinition> staticFields, out List<MethodDefinition> unloadCallbacks, outDiagnostics))
                 {
                     continue;
                 }
@@ -41,7 +42,8 @@ namespace EasyTypeReload.CodeGen
         private static bool NeedReload(
             TypeDefinition type,
             out List<FieldDefinition> staticFields,
-            out List<MethodDefinition> unloadCallbacks)
+            out List<MethodDefinition> unloadCallbacks,
+            List<DiagnosticMessage> outDiagnostics)
         {
             staticFields = new List<FieldDefinition>();
             unloadCallbacks = new List<MethodDefinition>();
@@ -51,13 +53,13 @@ namespace EasyTypeReload.CodeGen
                 return false;
             }
 
-            FilterStaticFields(type, staticFields);
+            FilterStaticFields(type, staticFields, outDiagnostics);
             FilterAndSortUnloadCallbacks(type, unloadCallbacks);
 
             return staticFields.Count > 0 || unloadCallbacks.Count > 0;
         }
 
-        private static void FilterStaticFields(TypeDefinition type, List<FieldDefinition> outStaticFields)
+        private static void FilterStaticFields(TypeDefinition type, List<FieldDefinition> outStaticFields, List<DiagnosticMessage> outDiagnostics)
         {
             foreach (FieldDefinition field in type.Fields)
             {
@@ -67,6 +69,27 @@ namespace EasyTypeReload.CodeGen
                 }
 
                 outStaticFields.Add(field);
+                AddFieldDiagnosticMessages(field, outDiagnostics);
+            }
+        }
+
+        static void AddFieldDiagnosticMessages(FieldDefinition field, List<DiagnosticMessage> outDiagnostics)
+        {
+            if (field.CustomAttributes.Get<ForceReloadAttribute>() != null)
+            {
+                return;
+            }
+
+            if (field.IsInitOnly)
+            {
+                outDiagnostics.Add(new DiagnosticMessage
+                {
+                    DiagnosticType = DiagnosticType.Warning,
+                    MessageData = $"Field '{field.Name}' in {field.DeclaringType.FullName} is marked readonly, " +
+                                  $"which may (e.g., when its value depends on another readonly field) cause undefined behavior after it is reloaded. " +
+                                  $"Consider removing readonly, or using const instead. " +
+                                  $"If you are sure it won't go wrong, you can add [field: {nameof(ForceReloadAttribute)}] to the relevant fields, properties, and events to suppress this message."
+                });
             }
         }
 

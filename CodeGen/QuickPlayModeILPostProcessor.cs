@@ -1,16 +1,12 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using EasyTypeReload.CodeGen;
-using Unity.CompilationPipeline.Common.Diagnostics;
+using QuickPlayMode.CodeGen;
 using Unity.CompilationPipeline.Common.ILPostProcessing;
 
-// namespace EasyTypeReload.CodeGen
-// {
-internal class EasyTypeReloadILPostProcessor : ILPostProcessor
+internal class QuickPlayModeILPostProcessor : ILPostProcessor
 {
     public override ILPostProcessor GetInstance() => this;
 
@@ -22,12 +18,12 @@ internal class EasyTypeReloadILPostProcessor : ILPostProcessor
             return false;
         }
 
-        if (compiledAssembly.Name == "EasyTypeReload.Editor")
+        if (compiledAssembly.Name == "QuickPlayMode.Editor")
         {
             return false;
         }
 
-        return compiledAssembly.References.Any(f => Path.GetFileName(f) == "EasyTypeReload.dll");
+        return compiledAssembly.References.Any(f => Path.GetFileName(f) == "QuickPlayMode.dll");
     }
 
     public override ILPostProcessResult Process(ICompiledAssembly compiledAssembly)
@@ -47,24 +43,22 @@ internal class EasyTypeReloadILPostProcessor : ILPostProcessor
             peStream = new MemoryStream(inMemoryAssembly.PeData);
             pdbStream = new MemoryStream(inMemoryAssembly.PdbData);
 
-            var diagnostics = new List<DiagnosticMessage>();
-
             // For IL Post Processing, use the builtin symbol reader provider
             assembly = LoadAssembly(peStream, pdbStream, new PortablePdbReaderProvider());
             HookAssembly.Execute(assembly, out MethodDefinition registerUnloadMethod, out MethodDefinition registerLoadMethod);
-            int hookedTypeCount = HookType.Execute(assembly, registerUnloadMethod, registerLoadMethod, diagnostics);
+            int hookedTypeCount = HookType.Execute(assembly, registerUnloadMethod, registerLoadMethod);
 
             if (hookedTypeCount <= 0)
             {
-                return new ILPostProcessResult(null, diagnostics);
+                return new ILPostProcessResult(null);
             }
 
-            return new ILPostProcessResult(WriteAssemblyToMemory(assembly), diagnostics);
+            return new ILPostProcessResult(WriteAssemblyToMemory(assembly));
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException(
-                $"Internal compiler error for {nameof(EasyTypeReloadILPostProcessor)} on {compiledAssembly.Name}. Exception: {ex}");
+                $"Internal compiler error for {nameof(QuickPlayModeILPostProcessor)} on {compiledAssembly.Name}. Exception: {ex}");
         }
         finally
         {
@@ -123,7 +117,6 @@ internal class EasyTypeReloadILPostProcessor : ILPostProcessor
 
     private static void Log(string message)
     {
-        Console.WriteLine($"{nameof(EasyTypeReloadILPostProcessor)}: {message}");
+        Console.WriteLine($"{nameof(QuickPlayModeILPostProcessor)}: {message}");
     }
 }
-// }

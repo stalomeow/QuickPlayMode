@@ -1,23 +1,37 @@
-# EasyTypeReload
+# Quick Play Mode
 
-[![openupm](https://img.shields.io/npm/v/com.stalomeow.easy-type-reload?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.cn/packages/com.stalomeow.easy-type-reload/)
+When entering play mode, automatically reset static members of dirty types without [Domain Reloading](https://docs.unity3d.com/Manual/DomainReloading.html). Advantages:
 
-An easy-to-use package for Unity that automatically resets static members of types when you enter play mode without [reloading domain](https://docs.unity3d.com/Manual/DomainReloading.html). It has low runtime overhead and can be entirely stripped from build.
+- Fast execution with low additional overhead.
+- Simple setup; just add a few attributes, and the rest is automatic.
+- No impact on the code of release builds.
 
-[中文版](/README.md)
+> Formerly known as EasyTypeReload.
 
 ## Requirements
 
 - Unity >= 2021.3.
 - Mono Cecil >= 1.10.1.
 
-## Examples
+## Install via git URL
 
-After importing the package, simply add attributes to your types. No additional configuration is needed.
+![install-git-url-1](/Screenshots~/install-git-url-1.png)
+
+![install-git-url-2](/Screenshots~/install-git-url-2.png)
+
+## Editor Extensions
+
+![menu-item](/Screenshots~/menu_item.png)
+
+You can manually reset static members of types or reload the domain.
+
+**Remember to click `Enter Play Mode Options/Reload Domain` to disable Domain Reloading!**
+
+## Examples
 
 ```csharp
 // Use the namespace
-using EasyTypeReload;
+using QuickPlayMode;
 // using ...
 
 // Mark the type
@@ -96,11 +110,43 @@ public static class ExampleIgnoredClass
 }
 ```
 
-## Editor Extensions
+## Readonly Fields
 
-It provides a menu item. You can manually reload previously used types or manually reload the domain.
+In the Unity Editor, the `readonly` keyword is removed from all fields in marked types, as shown in the example below:
 
-![menu-item](/Screenshots~/menu_item.png)
+```csharp
+[ReloadOnEnterPlayMode]
+public class Program
+{
+    public static readonly string a = "aaa";
+    public static readonly string b = a + "bbb";
+
+    // In the Unity Editor, the plugin removes the readonly keyword from the fields
+    // public static string a = "aaa";
+    // public static string b = a + "bbb";
+}
+```
+
+This process is automatic and generally does not require attention. If you want to preserve the `readonly` keyword, you need to add the `PreserveReadonly` parameter.
+
+```csharp
+[ReloadOnEnterPlayMode(PreserveReadonly = true)]
+public class Program
+{
+    public static readonly string a = "aaa";
+    public static readonly string b = a + "bbb";
+
+    // Preserves the readonly keyword
+    // public static readonly string a = "aaa";
+    // public static readonly string b = a + "bbb";
+}
+```
+
+However, preserving the `readonly` keyword may lead to issues.
+
+In the provided code, `a` can be reset successfully. However, the value of `b` after reset is unpredictable because its value depends on `a`. This is likely an issue with Unity Mono. After resetting the value of `a`, at the low-level, `a` seems to briefly become a dangling pointer, causing the result of `a + "bbb"` to be unpredictable.
+
+In most cases, there is no need to preserve the `readonly` keyword in the Unity Editor unless you require their metadata. If you must preserve it, it is advisable to perform thorough testing to check for potential errors.
 
 ## How Does It Work?
 

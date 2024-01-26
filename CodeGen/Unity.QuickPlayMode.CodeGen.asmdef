@@ -1,5 +1,5 @@
 {
-    "name": "Unity.EasyTypeReload.CodeGen",
+    "name": "Unity.QuickPlayMode.CodeGen",
     "rootNamespace": "",
     "references": [
         "GUID:4d5a93214d0043241966fbc137367740",

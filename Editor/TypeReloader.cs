@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace EasyTypeReload.Editor
+namespace QuickPlayMode.Editor
 {
     public static class TypeReloader
     {

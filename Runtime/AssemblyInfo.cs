@@ -1,4 +1,4 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("EasyTypeReload.Editor")]
-[assembly: InternalsVisibleTo("Unity.EasyTypeReload.CodeGen")]
+[assembly: InternalsVisibleTo("QuickPlayMode.Editor")]
+[assembly: InternalsVisibleTo("Unity.QuickPlayMode.CodeGen")]

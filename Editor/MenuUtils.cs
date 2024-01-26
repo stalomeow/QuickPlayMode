@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace EasyTypeReload.Editor
+namespace QuickPlayMode.Editor
 {
     internal static class MenuUtils
     {

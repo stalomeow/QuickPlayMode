@@ -1,4 +1,4 @@
-namespace EasyTypeReload
+namespace QuickPlayMode
 {
     internal static class AssemblyTypeReloaderConsts
     {

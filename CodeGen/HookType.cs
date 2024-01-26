@@ -4,13 +4,12 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 using Mono.Cecil.Cil;
-using Unity.CompilationPipeline.Common.Diagnostics;
 
-namespace EasyTypeReload.CodeGen
+namespace QuickPlayMode.CodeGen
 {
     internal static class HookType
     {
-        public static int Execute(AssemblyDefinition assembly, MethodReference registerUnloadMethod, MethodReference registerLoadMethod, List<DiagnosticMessage> outDiagnostics)
+        public static int Execute(AssemblyDefinition assembly, MethodReference registerUnloadMethod, MethodReference registerLoadMethod)
         {
             ModuleDefinition mainModule = assembly.MainModule;
             Stack<TypeDefinition> stack = new(mainModule.Types);
@@ -23,7 +22,7 @@ namespace EasyTypeReload.CodeGen
                     stack.Push(nestedType);
                 }
 
-                if (!NeedReload(type, out List<FieldDefinition> staticFields, out List<MethodDefinition> unloadCallbacks, outDiagnostics))
+                if (!NeedReload(type, out List<FieldDefinition> staticFields, out List<MethodDefinition> unloadCallbacks))
                 {
                     continue;
                 }
@@ -42,24 +41,26 @@ namespace EasyTypeReload.CodeGen
         private static bool NeedReload(
             TypeDefinition type,
             out List<FieldDefinition> staticFields,
-            out List<MethodDefinition> unloadCallbacks,
-            List<DiagnosticMessage> outDiagnostics)
+            out List<MethodDefinition> unloadCallbacks)
         {
             staticFields = new List<FieldDefinition>();
             unloadCallbacks = new List<MethodDefinition>();
 
-            if (type.CustomAttributes.Get<ReloadOnEnterPlayModeAttribute>() == null)
+            var attr = type.CustomAttributes.Get<ReloadOnEnterPlayModeAttribute>();
+
+            if (attr == null)
             {
                 return false;
             }
 
-            FilterStaticFields(type, staticFields, outDiagnostics);
+            bool preserveReadonly = attr.GetProperty<bool>(nameof(ReloadOnEnterPlayModeAttribute.PreserveReadonly));
+            FilterStaticFields(type, staticFields, preserveReadonly);
             FilterAndSortUnloadCallbacks(type, unloadCallbacks);
 
             return staticFields.Count > 0 || unloadCallbacks.Count > 0;
         }
 
-        private static void FilterStaticFields(TypeDefinition type, List<FieldDefinition> outStaticFields, List<DiagnosticMessage> outDiagnostics)
+        private static void FilterStaticFields(TypeDefinition type, List<FieldDefinition> outStaticFields, bool preserveReadonly)
         {
             foreach (FieldDefinition field in type.Fields)
             {
@@ -68,28 +69,12 @@ namespace EasyTypeReload.CodeGen
                     continue;
                 }
 
-                outStaticFields.Add(field);
-                AddFieldDiagnosticMessages(field, outDiagnostics);
-            }
-        }
-
-        static void AddFieldDiagnosticMessages(FieldDefinition field, List<DiagnosticMessage> outDiagnostics)
-        {
-            if (field.CustomAttributes.Get<ForceReloadAttribute>() != null)
-            {
-                return;
-            }
-
-            if (field.IsInitOnly)
-            {
-                outDiagnostics.Add(new DiagnosticMessage
+                if (field.IsInitOnly && !preserveReadonly)
                 {
-                    DiagnosticType = DiagnosticType.Warning,
-                    MessageData = $"Field '{field.Name}' in {field.DeclaringType.FullName} is marked readonly, " +
-                                  $"which may (e.g., when its value depends on another readonly field) cause undefined behavior after it is reloaded. " +
-                                  $"Consider removing readonly, or using const instead. " +
-                                  $"If you are sure it won't go wrong, you can add [field: {nameof(ForceReloadAttribute)}] to the relevant fields, properties, and events to suppress this message."
-                });
+                    field.IsInitOnly = false;
+                }
+
+                outStaticFields.Add(field);
             }
         }
 
@@ -357,6 +342,18 @@ namespace EasyTypeReload.CodeGen
         private static CustomAttribute Get<T>(this Collection<CustomAttribute> attributes) where T : Attribute
         {
             return attributes.FirstOrDefault(attr => attr.AttributeType.FullName == typeof(T).FullName);
+        }
+
+        private static T GetProperty<T>(this CustomAttribute attr, string name, T defaultValue = default)
+        {
+            foreach (CustomAttributeNamedArgument prop in attr.Properties)
+            {
+                if (prop.Name == name)
+                {
+                    return (T)prop.Argument.Value;
+                }
+            }
+            return defaultValue;
         }
     }
 }

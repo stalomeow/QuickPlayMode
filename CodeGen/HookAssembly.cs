@@ -1,9 +1,9 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
-using static EasyTypeReload.AssemblyTypeReloaderConsts;
+using static QuickPlayMode.AssemblyTypeReloaderConsts;
 
-namespace EasyTypeReload.CodeGen
+namespace QuickPlayMode.CodeGen
 {
     internal static class HookAssembly
     {

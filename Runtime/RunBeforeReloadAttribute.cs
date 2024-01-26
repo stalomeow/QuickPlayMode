@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace EasyTypeReload
+namespace QuickPlayMode
 {
     [Conditional("UNITY_EDITOR")]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]

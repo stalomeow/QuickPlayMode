@@ -1,23 +1,39 @@
-# EasyTypeReload
+# Quick Play Mode
 
-[![openupm](https://img.shields.io/npm/v/com.stalomeow.easy-type-reload?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.cn/packages/com.stalomeow.easy-type-reload/)
+[>> English Version <<](/README_EN.md)
 
-在关闭 Unity 的 [Domain Reloading](https://docs.unity3d.com/Manual/DomainReloading.html) 后，进入 Play Mode 时，自动重置类型的静态成员。运行时开销低。正式打包时，这个包的代码会被完全剔除。
+进入播放模式时，自动按需重置类型的静态成员，不使用 [Domain Reloading](https://docs.unity3d.com/Manual/DomainReloading.html)。优势：
 
-[English Version](/README_EN.md)
+- 速度快，额外开销低。
+- 没有复杂配置，只需要加几个 `Attribute`，其他全自动。
+- 不影响发布构建时的代码。
+
+> 之前叫 EasyTypeReload。
 
 ## 要求
 
 - Unity >= 2021.3.
 - Mono Cecil >= 1.10.1.
 
-## 示例
+## 从 git URL 安装
 
-导入包以后，在类型上加 Attribute 就好。不需要额外的配置。
+![install-git-url-1](/Screenshots~/install-git-url-1.png)
+
+![install-git-url-2](/Screenshots~/install-git-url-2.png)
+
+## 编辑器扩展
+
+![menu-item](/Screenshots~/menu_item.png)
+
+可以手动重置类型的静态成员，或者手动 Reload Domain。
+
+**记得点 `Enter Play Mode Options/Reload Domain` 关闭 Domain Reloading！**
+
+## 示例
 
 ``` csharp
 // 使用命名空间
-using EasyTypeReload;
+using QuickPlayMode;
 // using ...
 
 // 标记类型
@@ -96,11 +112,43 @@ public static class ExampleIgnoredClass
 }
 ```
 
-## 编辑器扩展
+## 只读字段
 
-提供了 MenuItem。可以手动重置之前用过的类型，或者手动 Reload Domain。
+在 Unity Editor 里，会把被标记的类型中所有的字段的 `readonly` 关键字去掉。例如：
 
-![menu-item](/Screenshots~/menu_item.png)
+``` csharp
+[ReloadOnEnterPlayMode]
+public class Program
+{
+    public static readonly string a = "aaa";
+    public static readonly string b = a + "bbb";
+
+    // 在 Unity Editor 里，插件会把字段上的 readonly 去掉
+    // public static string a = "aaa";
+    // public static string b = a + "bbb";
+}
+```
+
+这个过程是自动完成的，一般不需要在意。如果要保留 `readonly` 关键字，需要加上 `PreserveReadonly` 参数。
+
+``` csharp
+[ReloadOnEnterPlayMode(PreserveReadonly = true)]
+public class Program
+{
+    public static readonly string a = "aaa";
+    public static readonly string b = a + "bbb";
+
+    // 保留 readonly 关键字
+    // public static readonly string a = "aaa";
+    // public static readonly string b = a + "bbb";
+}
+```
+
+然而，保留 `readonly` 关键字可能会导致问题。
+
+上面的代码中，`a` 可以正常被重置。`b` 被重置后的值是无法预测的，因为它的值依赖 `a`。这大概是 Unity Mono 的问题。在重置完 `a` 的值后，在底层，`a` 似乎会短暂地变成野指针，导致 `a + "bbb"` 的结果无法预测。
+
+通常情况下，在 Unity Editor 里不需要保留 `readonly` 关键字，除非你要用这部分元数据。如果一定要保留它的话，请先做一下测试，看看会不会出错。
 
 ## 原理？
 

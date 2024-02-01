@@ -1,6 +1,6 @@
 {
   "name": "com.stalomeow.quick-play-mode",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Stalo",
   "displayName": "Quick Play Mode",
   "description": "When entering play mode, automatically resetting static members of dirty types, instead of reloading the domain.",

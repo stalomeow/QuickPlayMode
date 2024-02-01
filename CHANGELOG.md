@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The install url of package.
+- Fix the issue where `RunBeforeReloadAttribute` can be used on an instance method.
+
 ## [2.0.0] - 2024-01-27
 
 ### Added

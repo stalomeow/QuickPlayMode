@@ -89,6 +89,11 @@ namespace QuickPlayMode.CodeGen
                     continue;
                 }
 
+                if (!method.IsStatic || method.IsConstructor)
+                {
+                    continue;
+                }
+
                 CustomAttribute attr = method.CustomAttributes.Get<RunBeforeReloadAttribute>();
 
                 if (attr == null)
